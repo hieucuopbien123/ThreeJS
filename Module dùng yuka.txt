@@ -1,0 +1,34 @@
+# Yuka:
+Yuka là JS lib dùng cho dev game AI. Ta có thể ứng dụng yuka để dùng các tính năng AI có sẵn kết hợp vào hình học 3d của ThreeJS để code các tính năng hay. 
+
+-> Basic:
+Entities là các intelligent component của game. Nó có thể là nhân vật game or các object trong game mà có hành động giống như nó ở trong real world
+
+npm i yuka -> import * as YUKA from "yuka";
+
+Khi dùng trong threejs cũng như các thư viện khác thì bản chất cũng chỉ là: ta có vật thể hiện ra ở bên trong threejs thì tất cả các tính năng về tọa độ, vị trí các thứ ta disable hết và trao khả năng thay đổi các thuộc tính đó cho các object của yuka. Sau đó bất cứ thuộc tính AI nào được thực hiện thì đơn giản nó tự động performce trên các vật hiển thị bằng cách thay đổi vị trí và xoay các thứ là xong. Tất cả mọi thứ yuka có hết r chỉ cần áp vào 
+
+-> Steering behavior là thuật toán giúp cho entity có chuyển động giống như trong real life. Có nhiều thuật toán AI steering behavior
+--> Dùng Follow Path Steering Behavior: giúp entity di chuyển theo 1 đường path có sẵn. VD car đi trên đường.
+Cơ chế là ta vẽ mesh là physical body và gắn vào nó 1 object soul vô hình(tạo bằng yuka), object này dùng thuật toán để nó có thể đi trên 1 đường path xác định
+
+--> Seek Steering Behavior
+
+--> Arrive Steering Behavior chỉ khác Seek Steering Behavior là khi gần tới đích, tốc độ nó giảm dần cho giống với real life hơn, cái trên tốc độ là đều
+
+--> Obstacle Avoidance Steering Behavior:
+Khởi tạo chướng ngại vật và set thuật toán thôi. Điều đb là với các object tạo bằng threejs thì phải set bounding radius cho nó để xác định phạm vi tránh va chạm. Nó cũng làm cho giả định kích thước vật bị phình to ra. Nếu k kích thước bé tí nó đi xuyên qua luôn
+
+--> Wander Behavior: kiểu move around loạn xạ để chờ cho 1 trận chiến sắp diễn ra chẳng hạn
+
+--> Offset Pursuit Steering Behavior: đuổi object nhưng luôn giữ vị trí ở 1 chỗ nào đó theo tọa độ
+
+--> Flocking Steering Behavior: tất cả đổ xô về 1 hướng theo từng nhóm. Để implement ta dùng 4 behavior khác cho nó: 
+Wander Behavior để nó di chuyển random
+AlignmentBehavior làm mọi cái đi theo 1 hướng. Bản chất là nó tìm neighbor và đi theo hướng của các neighbor gần nhất
+CohesionBehavior làm các object có xu hướng tụ về từng nhóm. Bản chất nó tìm neighbor và move theo majority
+SeparationBehavior làm các object có kc với nhau. Ta muốn nó tụ về từng nhóm nhưng k nên có vị trí trùng nhau.
+
+--> Interpose Steering Behavior: Object đuổi theo trung điểm của 2 object khác
+
+

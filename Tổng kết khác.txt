@@ -1,0 +1,133 @@
+# Các class của ThreeJS:
+-> Class setup:
+WebGLRenderer
+Scene
+
+-> Các loại camera
+PerspectiveCamera
+OrthographicCamera
+CameraHelper
+
+-> Các loại camera control:
+OrbitControls
+FirstPersonControls
+
+-> Các loại light
+AmbientLight
+DirectionalLight / DirectionalLightHelper
+SpotLight / SpotLightHelper
+PointLight
+HemisphereLight
+
+-> Các geometry có sẵn
+BoxGeometry
+SphereGeometry
+PlaneGeometry
+RingGeometry
+BufferGeometry
+Object3D
+BufferGeometry
+ConeGeometry
+CircleGeometry
+
+-> Các hình có sẵn
+Mesh
+Line
+Skeleton
+LineLoop
+
+-> Các object toán học có sẵn
+Plane
+Sphere
+Line3
+Box3
+Group
+
+-> Các helper khác
+AxesHelper
+GridHelper
+
+-> Các material
+MeshBasicMaterial
+MeshStandardMaterial
+LineBasicMaterial
+ShaderMaterial
+MeshPhongMaterial
+MeshPhysicalMaterial
+MeshNormalMaterial
+
+-> Các class loader:
+TextureLoader
+CubeTextureLoader
+GLTFLoader
+RGBELoader
+
+-> Các class animation:
+AnimationMixer
+AnimationClip
+AnimationObjectGroup
+
+-> Các class post processing:
+RenderPass
+EffectComposer
+UnrealBloomPass
+
+-> Các class tính năng khác:
+Vector2
+Vector3
+Vector4
+Raycaster
+Color
+Clock
+LoadingManager
+Float32BufferAttribute
+SkeletonUtils
+Object3D
+
+
+
+# Các class cannon js
+Body
+World
+Vec3
+
+-> Các shape: 
+Box
+Sphere
+Particle
+
+-> Tương tác các object:
+ContactMaterial / Material
+LockConstraint
+
+
+
+# Các class yuka
+Vector3
+Path
+OnPathBehavior
+Smoother
+
+-> Tối thiểu
+EntityManager
+GameEntity
+Time
+Vehicle
+
+-> Các class về thuật toán
+FollowPathBehavior
+OffsetPursuitBehavior
+SeekBehavior
+ArriveBehavior
+AlignmentBehavior
+CohesionBehavior
+SeparationBehavior
+WanderBehavior
+InterposeBehavior
+
+
+
+# Các class khác:
+dat.GUI
+
+

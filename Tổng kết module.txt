@@ -1,0 +1,371 @@
+ThreeJS:
+Three dùng cho mọi dự án. Trong React có thể dùng three thuần or dùng react-three-fiber dùng chuyên cho dự án react, làm sẵn thành từng component
+
+Các cách chạy dự án với three:
+1) HTMl, CSS thuần với CDN
+2) Dùng package npm three và bundle thủ công
+3) Dùng package npm three với các tool bundle (như parcel, webpack, vite)
+4) Dùng package npm three với react 
+5) Dùng three và react-three-fiber trong react
+=> Tùy loại tool bundle mà các cách setup khác nhau
+
+-> Dùng được CDN hoặc npm thủ công
+npm nên dùng trong React, CDN dùng trong web html thuần nhưng 1 số package npm vẫn dùng được trong html thuần như threejs này.
+Khi cài bằng "npm i three": ta có thể dùng trực tiếp npm package với dự án html thuần cũng được nếu có đủ polyfill và import vào dự án(bundle thủ công). Or có thể dùng luôn các tool bundle thay vì phải làm v thủ công để compile mọi package thành 1 single JS file VD như webpack hay parcel. Ta phải dùng thẻ với type="module" thì mới dùng được lệnh import bên trong, nhưng với 1 vài bundler ở 1 số phiên bản thì type này có thể gây lỗi mà ta k nên dùng
+
+Kp mọi thứ đều truy cập trực tiếp được thông qua threejs, các phần phổ biến khác như controls, loaders, post-processing effects được lưu trong thư mục con example/jsm và khi dùng phải import riêng từ các thư mục này:
+Dùng CDN phải tự link tiếp bằng url khác. Dùng npm thì trong node_modules của threejs có và phải tự import để dùng
+
+-> Dùng tool parcel cho các dự án test (mặc định)
+npm i parcel -g => dùng tool bundler để manage dễ hơn, k cần config
+Chạy: parcel ./src/index.html => parcel tự động bundle file này và các thứ cần chạy nó và refresh page tự động khi code thay đổi(tính năng tương tự webpack với React), chỉ khác là nó tự động chạy ở cổng 1234, nhét vào script npm start để chạy ok
+VD khi ta thêm ảnh vào folder src trong dự án thì parcel sẽ tự sinh ra 2 bức ảnh này trong folder distribution của dự án để chạy
+
+--> Để setup kèm npm chỉ cần thêm:
+npm init -> thêm các câu lệnh start và build của parcel. VD:
+"start": "parcel src/index.html",
+"build": "parcel build src/index.html --no-source-maps --dist-dir build",
+=> npm run build sẽ build vào thư mục build
+
+-> Dùng React với three thuần
+Three chỉ là 1 npm package nên import vào dùng bth. Các tính năng trong example của three cũng có các thư viện riêng như: npm i three-orbitcontrols --save nếu muốn tách. 
+Ta viết mọi code trong useEffect lần đầu tiên là xong. Phải tắt StrictMode để tránh render 2 lần. Dùng useRef để lấy thẻ appendChild là xong
+
+
+
+# Basic
+4 tp cơ bản là Scene, Camera, Canvas, Renderer. Renderer sẽ render Scene chứa các Mesh lên Canvas theo góc quay Camera hiện ra cho người dùng.
+
+Trong WebGl, nó chuẩn hóa tọa độ bằng 1 trục 0,0 nằm ở trung tâm, x và y axis đều là normalized value. VD điểm top right là (1920,0) của màn hình thực chất là (1,1) normalized value
+
+Ta dùng threejs với html bình thường. VD để hiển thị text, có thể: dùng html thuần position absolute với zIndex đè lên canvas or dùng thuần threeJS với TextGeometry
+
+-> Trong không gian 3D, các phần tử trong 1 model đều xây dựng từ hình tam giác vì nó là tối thiểu xác định 1 mặt phẳng trong MT 3D, những model có số lượng tam giác ít gọi là low-poly. WebGL chỉ cần sử dụng điểm, đường và tam giác để render bất cứ thứ gì.
+Mesh là các model geometry đã được tô màu bề mặt vật liệu(material), nó nói về 1 vật thể đã hoàn chỉnh. Trong three js, cần sử dụng geometry và material hợp lý vì geometry càng nhiều segment sẽ càng tốn tài nguyên, 1 số built-in material trong three cx tốn nhiều resource hơn bth vì nó dùng các thuật toán phức tạp.
+Mặc định nếu k set, nó chỉ dùng tối thiểu số lượng segment để tạo ra vật thể như mặt phẳng cần 4 điểm, 2 segment mà thôi. Vc tạo nhiều segment cũng giúp custom hình dạng tốt hơn, chỉ cần chia ra nhiều tam giác nhỏ và thay đổi vị trí, từ đó tạo ra hiệu ứng sóng hay vật thể biến dạng.
+ThreeJS gặp vài vấn đề như kích thước lớn, 1 số trình duyệt k hỗ trợ WebGL nên cần biện pháp backup, VD hiển thị lỗi k support chẳng hạn.
+
+-> Tương tác qua chuột: 
+--> Dùng RayCaster là ray từ source đến chuột cắt qua object nào là tương tác với object đó. Mặc định chuột ở vị trí sau cùng. Thứ tự trong array bắt được theo chiều từ gần đến xa. 
+Mỗi object khi tạo mặc định có 1 uuid mà ta có thể dùng nó để duyệt xác định object nào tương tác với chuột. Ngoài ra còn có name, id. 
+Ta đều có thể set được giá trị các thuộc tính của object được log ra
+
+-> dat.gui là tool debug cho threejs: 
+npm install --save dat.gui => import * as dat from "dat.gui";
+
+Trong ThreeJS cũng có sẵn các helper, chỉ gọi helper sau khi set hết các thuộc tính r thì helper mới hiện đủ và mỗi khi update giá trị gì thì cũng phải update lại helper.
+
+-> Hiện shadow
+Mỗi light có 1 camera riêng cho từng shadow nó tạo ra, mặc định shadow hiện k đủ khi cam nghiêng vì camera shadow vị trí mặc định trong vùng của light mà thôi nên phải chỉnh vị trí kích thước cũng như angle nhưng cẩn thận pixel shadow. Khi tới giới hạn k hết được pixel shadow thì có thể tăng thêm số lượng light
+
+Để có shadow:
+renderer.shadowMap.enabled = true;
+directionalLight.castShadow = true;
+plane.receiveShadow = true;
+sphere.castShadow = true; và vật thể k dùng MeshBasicMaterial => trap
+
+-> Custom hình dạng
+Để biến đổi hình dạng vật thể, có thể dùng JS bình thường or vertex-shader thì phải hiểu về phương trình toán học vì các vertex sẽ có vị trí tạo ra các hình theo phương trình toán học trên từng trục
+
+Mỗi điểm trong hình được lưu trong 1 array [x][y][z][x][y][z][...] với 3 ô tọa ra 3 tọa độ của từng điểm. VD plane.geometry.attributes.position.array[4] là tọa độ trục y của điểm thứ 2 được tạo ra trên mặt phẳng
+
+-> ThreeJS có các object có sẵn như Line3, Sphere, Box2 dùng được cho các phép tính math hình học lưu vào 1 biến được thay vì cứ phải tạo object thực tế. 
+
+-> Fix resize window: Khi resize màn hình lớn ra thì phần thừa sẽ có màu trắng là vì nó k chạy lại file JS để set lại kích thước của rerender theo màn hình mới. Ta bắt sự kiện cho nó setSize lại là xong
+
+-> Phân biệt Geometry và BufferGeometry: 
+Phiên bản trước thì Geometry dễ sử dụng nhưng overhead bộ nhớ và performance còn BufferGeometry dùng khó hơn nhưng k lỗi k overhead. Từ phiên bản r125 2021, họ remove hoàn toàn Geometry vào thư mục deprecated, hiện tại chỉ dùng BufferGeometry và Geometry thành alias của class BufferGeometry mà thôi nên dùng cái nào cũng được
+
+-> Dùng ảnh custom làm material, dùng cho cube 6 mặt
+-> FogExp2
+-> Chỉnh FPS ứng dụng
+-> Object3D - Làm 1 vật thể quay quanh 1 vật thể khác
+-> Lồng threejs ở 1 vị trí bất kỳ trong web html
+
+-> Vc dùng background cho scene giống như ta ghép 6 bức ảnh cho 1 khối cube lớn bao quanh. Vc dùng environment giống như vc dùng 1 khối cầu lớn bao quanh. 2 cách tương tự nhau nhưng environment ra đời sau có cải tiến 1 chút là các material có roughness thấp có thể phản chiếu màu của environment trông thật hơn và enironment thg dùng cho 1 số TH khi mà ảnh texture là chất lượng cao có thể tạo không gian 3d như đang trong 1 căn phòng thực sự như ảnh hdr. Nếu simple thì dùng background thôi
+Cả 2 đều k thể chạm tới trong khi các căn phòng game first person control dùng hẳn 1 model tạo k gian luôn
+
+
+
+# IMPORTANT(setup dự án)
+--> Set up các thông số của renderer về gamme
+gammaFactor = 2 là biến số mặc định trong threejs nhưng thực tế tùy vào không gian màu khác nhau mà gt khác nhau. Ta chỉ đổi khi có nhu cầu thay đổi k thì dùng mặc định của threejs. Trong không gian sRGB, đúng hơn là nên set:
+renderer.gammaOutput=true; renderer.gammeFactor=2.2; 
+Tuy nhiên độ ảnh hưởng của màu k đáng kể khi sửa đổi. Cụ thể:
+- gammaOutput xác định có nên chuyển renderer output từ linear sang kg màu đích k (e.g. sRGB)
+- gammaFactor xđ tham số chuyển đổi để render ra output, nó cũng chuyển đổi với texture input nếu dùng texture.encoding = THREE.sRGBEncoding
+Lúc nào cũng nên cho antialias true
+
+-> Ta có thể cho three hiện ở bất cứ component nào bằng thao tác với DOM JS bình thường. Còn nếu full màn hình phải cho body margin = 0 để xóa phần trắng và mất thanh scrollbar ngang
+
+-> Bên cạnh THREE.WebGLRenderer, threejs có các option khác dự phòng cho các trình duyệt k hỗ trợ WebGL. Có thể check trình duyệt có hỗ trợ WebGL hay không
+
+-> Camera có 2 loại là PerspectiveCamera nhìn thật hơn OrthographicCamera.
+--> PerspectiveCamera có 4 tham số
+fov: là field of view là góc nhìn theo deg, từ 1->179deg, nó cho ra kích cỡ vật thể khi gần cam hay xa cam
+aspect là tỉ lệ: tỉ lệ của cam width/height, nên dùng width of element/height of element
+far và near là tham số tương tự perspective trong css là giới hạn xa gần, điểm cực xa là default 2000, điểm cực gần default là 0.1 => ở đây các phần nằm gần hơn near và xa hơn far sẽ k được render
+
+--> OrthographicCamera nhìn 2D vì k tính depth: cần top right down left near far, vật ở gần hay xa thì kích thước k bị ảnh hưởng
+
+-> Phân biệt aspect của Camera với setSize của renderer và kích thước của canvas:
+Kích thước canvas kích thước thẻ mà ta nhìn thấy trên trang web, ta có thể chỉnh vị trí của thẻ này để quyết định animation hiện ở đâu.
+Thực chất hàm setSize của renderer chính là set lại kích thước của chính thẻ canvas, ghi đè lên code css trước. Tham số thứ 3 là updateStyle là có cho ghi đè hay không, mặc định là true là được ghi đè, là false thì dùng kích thước size cũ bằng cách phóng to thu nhỏ hình ở kích thước của renderer về kích thước của canvas. Nên kích thước renderer mà nhỏ xong phóng to ra sẽ làm giảm độ phân giải nhìn thấy trên canvas
+Aspect của cam là tỉ lệ hiển thị, nó k chỉnh sửa kích thước của canvas mà chỉnh tỉ lệ dùng trong canvas. VD canvas tỉ lệ 1:1 mà camera là 1/2 thì méo height nhân 2 rồi. Kích thước méo thì nó giữ theo tỉ lệ nhỏ hơn tức hình bị to ra
+=> Tức canvas chỉnh vị trí, renderer setSize ghi đè canvas size, camera chỉnh tỉ lệ hiển thị méo như nào
+
+-> Render loop
+--> function animate { requestAnimationFrame(animate); <> } thì hàm animate được gọi liên tục trong 1 loop
+Nó tạo 1 loop chạy trên scene mỗi khi screen refresh(mặc định 60 lần 1s). Ta hoàn toàn chỉnh được thông số này giông như chỉnh fps của game nhưng dùng requestAnimationFrame có nhiều lợi ích. VD nó sẽ pause animation mỗi khi user navigate sang tab khác, tránh lãng phí processing power hay hao pin. Chỉ khi có hình động mới cần render lại, k thì cho tĩnh. 
+
+Khi post processing thì có thể phải dùng cái này mới hiện
+
+--> renderer.setAnimationLoop(animate); tương tự nhưng gọi bên ngoài => ưu tiên dùng cái này hơn vì nhận time truyền vào. Biến time tăng dần nhanh ngang fps.
+Để tạo animation, cho vào trong render loop. Ta có thể set vị trí mới cho data trong hàm animate(dùng biến time) or thay đổi vị trí += so với vị trí cũ
+
+Cứ animation tịnh tiến thì cho time linear, animation kiểu dao động qua lại cho sin vào là được, time tăng quá nhanh thì chia ra là xong
+
+
+
+# Các loại material và light
+-> Material
+LineBasicMaterial: chỉ dùng tạo line, line thì luôn tạo phát được luôn chả có material màu éo gì
+ShaderMaterial: khi dùng shader để tạo dùng với shader
+MeshPhysicalMaterial: tấm kính trong suốt nhìn xuyên sang bên kia, tùy chỉnh mức độ đó
+MeshBasicMaterial: hiện vói màu thuần và riêng cái này k có hiệu ứng ánh sáng
+MeshNormalMaterial: hiện màu thuần nhưng có ánh sáng, tính toán đơn giản nhất
+MeshLambertMaterial: k shiny lắm nhưng cũng ok
+MeshPhongMaterial: nó tạo vật custom độ phản chiếu, có thể đục hay trong suốt như gương
+MeshStandardMaterial: tạo realistics appearance, chỉnh tính kim loại hay độ gồ ghề nên ảnh phản chiếu nó kiểu k được như gương. VD Phong và Standard chơi 2 cái đục cùng phản chiếu ánh sáng thì Phong nó loãng ra và mờ k thấy rõ còn Standard thấy rõ nguồn sáng bóng và nhỏ trên bề mặt phản chiếu hơn
+=> Computation cost: MeshNormalMaterial < MeshLambertMaterial < MeshPhongMaterial < MeshStandardMaterial
+=> Ngoài các cái khác là dùng cho các TH riêng biệt thì Standard, Phong, Lambert nó khá giống nhau. Nên dùng Phong cho các TH muốn đục hay trong suốt còn dùng Standard cho các case tính kim loại, k dùng Lambert.
+
+Ngoài ra còn có MeshMatcapMaterial, MeshToonMaterial,.. xem trong: https://sbcode.net/threejs/materials/
+
+-> Light: có nhiều loại 
+Ambient light: là ánh sáng đến từ môi trường, sáng do nguồn sáng gián tiếp tạo ra, k thể cast shadow. VD daylight ta thấy trong nhà
+Directional light: là nguồn sáng đến từ 1 nguồn lớn bao trùm cả không gian với các tia coi như song song. VD tia sáng từ mặt trời
+Spotlight: là ánh sáng tạo ra hình nón, nguồn sáng càng xa thì sáng càng yếu và bán kính đáy nón càng lớn
+
+HemisphereLight: là ánh sáng chiếu từ phía trên, giống directional light, có thể thêm màu cho bầu trời và màu cho mặt đất và nó sẽ fade dần. K thể cast bóng.
+=> có thể dùng nó để fix màu
+
+Ngoài ra còn có PointLight,..
+
+SpotLight nếu ở xa và góc chiếu lớn thì shadow bị mờ hiện dạng pixel. Muốn bth phải co nhỏ góc lại
+
+
+
+# Điều khiển camera
+Dùng orbit control hay firstpersoncontrol của threejs
+Dùng sự kiện window.addEventListener bình thường => k nên vì rối
+Dùng các thư viện ngoài như animejs gsap
+
+Có thể move camera tạo hiệu ứng vật đang chuyển động cinematic effect
+
+-> Nếu dùng orbit control, gọi hàm update thì nó sẽ tự chỉnh về lookAt(0,0,0) nên gọi hàm này trước khi gọi orbit.update() sẽ hiển thị sai vị trí
+
+-> gsap và timeline lồng nhau sẽ thực hiện song song như bth nhưng nên tránh conflict tọa độ. VD: tl có 3 phase, mỗi phase cùng thời gian với 1 gsap khác đang chạy thì gsap đó chạy 1 lần song song với phase đầu tiên
+
+gsap k chỉ cho movement cam mà có thể tạo animation khác tự động cho các object với cơ chế tương tự
+
+Với các option bao gồm màu hay chuyển động, ta có thể search kiểu visualization để xem thực tế nó như nào mà chọn options
+
+Có thể kết hợp animation tạo ra các animation phức tạp như bóng nảy: ta chỉ cần cho nó đi ngang về 1 hướng, kết hợp đồng thời cho nó xuống lên liên tục với cường độ giảm dần là được. Tức ta có thể tạo đường parabol dựa vào 2 chuyển động thẳng cùng lúc. Thực tế có loại ease là bounce.out có thể tạo hiệu ứng nảy được mà k cần lên xuống thủ công nh lần, gsap còn cho ta customize đồ thị ease nhưng phức tạp, or dùng loop với linear bình thường để giảm dần độ cao ok
+
+-> Background cho không gian ta thường kiểu set bầu trời, còn trong các game 3d, họ k dùng background để tạo cảnh vì không gian 3d background là hữu hạn nhưng ta kbh chạm tới được bằng cách di chuyển cam. Để tương tác với các bức tường hay sàn nhà thì cả căn phòng trong game thực chất là 1 model 3d, từ đó ta navigate cam tới bất cứ vị trí nào trong căn phòng được. Đặc biệt chơi game góc nhìn thứ nhất ta dùng FirstPersonControl cam là được
+
+
+
+# Photography
+-> Dynamic range
+Kc từ điểm sáng nhất tối nhất trên ảnh và màn hình có thể hiển thị. Nếu màn hình và bộ xử lý có thể hiển thị ở dynamic range lớn thì sẽ nhìn được rõ hơn các chi tiết nhỏ ở vùng tối nhất và sáng nhất => VD là các thiết bị có ghi HDR là xử lý được high dynamic range
+=> Để đạt được ảnh có độ chi tiết cao, photographer chụp nhiều bức ảnh ở các cường độ sáng khác nhau rồi merge lại thành 1 ảnh duy nhất qua các phần mềm xử lý ảnh. Kết quả của quá trình này được lưu trong file hdr or đuôi exr, kích thước của file này đương nhiên lớn hơn nhiều so với 1 file ảnh jpg bth. 
+
+-> Điều này dẫn tới 1 vấn đề là màn hình chỉ xử lý được ảnh 8-10 bit nhưng hdr image được encoded thành 16-32 bits vì nó có nhiều chi tiết nhỏ, điều này gây mất detail. Tone mapping ra đời là 1 operation giúp ta hiển thị 1 bức ảnh hdr nhìn giống nhất so với ảnh đó dạng hdr form. Nó nén ảnh hdr 16 bit thành 8 bit chẳng hạn mà vẫn giữ nhiều chi tiết nhất có thể. Vc nén này có thể thực hiện bằng các phần mềm như photoshop, option 2 là dùng tone mapping algorithm. Threejs có algorithm này
+
+-> Gamma Correction
+Thực tế, khi soi 2 đèn vào 1 vật thì camera sẽ capture cường độ sáng nhân đôi từ vật đó so với vc soi 1 đèn nhưng mắt ta lại prefer bóng tối hơn camera thực tế nên ta thấy nó k đến mức x2 cường độ sáng đâu. Tức đồ thị cường độ sáng nó bắt được so với mắt người là linear và đó là chuẩn. Nhưng màn hình hiển thị ánh sáng khi show ảnh lại tối hơn bình thường và đó là nó áp dụng 1 số gamma là 2.2(sRGB) tạo ra 1 curve lệch. Để giải quyết vấn đề đó, họ tạo 1 inverse curve với gamma = 1/2.2 để cuối cùng ảnh hiển thị trên màn hình là linear(gamma = 1.0) từ đó mắt người nhìn thấy như natural.
+=> Đó là gamma correction để đồng bộ chuẩn những gì camera capture được so với monitor hiển thị ảnh. Điều này được làm tự động khi compressed file thành jpg or png(gamma = 1) tức các ảnh này mặc định sáng hơn bth. HDR và EXR vẫn lưu linear format và k có inverse curve nên dùng nhiều trong cgi or game dev vì các trình render cần linear format để làm vc với image và tự xử lý riêng gamma correction cho chuẩn với màn hình bằng encoding alg (sRGB encoding). ThreeJS cũng dùng renderer với cơ chế tương tự nên xử lý ảnh .hdr bình thường (tính toán pixel color rồi gamma correction) nhưng với .jpg có inverse curve làm ảnh hiển thị k chuẩn 1 cách tự động. Dù là TH nào thì ta cũng phải fix gamma correction bằng code chứ k tự động.
+
+sRGB là subset màu của tập colors mà human eyes nhìn thấy, gamma correction bao gồm cả vc đưa màu của bức ảnh về màu gốc của nó lúc hiển thị. 
+
+-> Create realistic scene trong threejs:
+maxroz là trang web cung ảnh miễn phí về các scene chuẩn hdr nhìn relalistic 360 độ
+Có 3 cách tạo background cho scene: Set 1 bức ảnh thường(chỉ hiển thị 1 mặt); Set 6 bức ảnh cho 6 mặt; Set 1 bức ảnh 360 độ cho Loader và threejs tự động xử lý
+Ảnh hdr trong threejs phải xử lý gamma correction và tonemapping để hiển thị bth
+
+-> Post processing
+Khi ảnh original trước khi renderer hiển thị có thể đi qua 1 cái EffectComposer. Bên trong nó đi qua từng Pass một bao gồm các effect ảnh hưởng và filter dùng cho ảnh rồi mới hiển thị ra màn hình. Pass đầu tiên của EffectComposer là Render Pass là ảnh gốc cần hiển thị và ta phải đi qua nó đầu tiên vì nếu đặt ở cuối sẽ chỉ hiện luôn original mà các filter khác chả ảnh hưởng.
+Trong threejs có các class lo vc đó và cũng có rất nhiều hiệu ứng có thể dùng như Unreal Boom Pass là hiệu ứng phát sáng => thg dùng xây mô hình phát sáng trên nền tối
+
+
+
+# Load assets
+Ta có thể tạo ra các 3D model để thêm vào threeJS tạo ra bằng các tool tạo object 3D như blender or tải trên mạng dưới định dạng fbx, obj, gltf(.glb) mà kp thiết kế lại. 
+Mỗi loại file assets khi dùng trong Threejs đều có file loader của riêng nó như RGBELoader, GLTFLoader, TextureLoader,.. thậm chí là font chữ hay audio, video
+
+Các vật thể realistics muốn hiển thị phải cung cho nó 1 env map chứ đừng cung cái directional light nhìn xấu
+
+Ta có thể quyết định import thuần or dùng thư viện
+-> Dùng thư viện parcel-reporter-static-files-copy giúp ta copy cấu trúc thư mục folder static cùng cấp với folder src vào trong dist, như v có thể refer đến file bằng string thuần với nguồn coi như bắt đầu từ bên trong thư mục dist trở đi. Lúc này ta tha hồ refer k lo vì cấu trúc nó đảm bảo y hệt như trong dist. 
+
+-> Dùng thuần hết: 
+Với mọi loại file dù là hdr, 3d gltf, jpg đều dùng được kiểu import này, bất kể nhiều mesh hay không:
+const model = new URL("../model/abc.glb", import.meta.url);
+gltfLoader.load(model.href, <>);
+=> Bản chất khi dùng string thuần tức là đang refer đến cấu trúc thư mục của bản distribution, mọi bundler đều giữ 1 bản distribution như parcel có dist còn webpack hay webpack có thư mục public. Còn dùng import bình thường như trên là đang code source file và mọi thứ refer đến bên trong thư mục src thôi. Do đó k nên dùng thư viện làm gì vì nó chỉ là cách tác động và thư mục assets của từng bundler, chỉ cần nhớ kiểu import duy nhất bên trên và dùng đúng loại loader là được.
+
+--> Load ảnh hdr realistics: Phải dùng RGBELoader
+--> Load model nhỏ hay lớn: Dùng GLTFLoader
+
+--> Load ảnh làm background bình thường: dùng TextureLoader và gán scene.background => trông mỗi 1 bức ảnh dị vl
+--> Tương tự với load ảnh vào khối sphere
+
+--> Load ảnh vào full background 6 mặt: dùng CubeTextureLoader và làm tương tự vì thực tế trong không gian ta nhìn thấy gói gọn trong 1 cube 6 mặt mà thôi nên có thể dùng 1 bức ảnh 2D để làm nó hiện như 3D.
+--> Load ảnh vào 6 mặt vào 1 cube box: dùng TextureLoader bình thường nhưng gán 6 lần vào 1 mảng của material
+
+-> Set up để load model lớn:
+--> Nếu dùng cdn thì ok
+--> Nếu dùng parcel thì k thể nhét vào folder assets r import từng texture vì quá lớn, 1 model có thể có rất nhiều texture chứ k chỉ có 1 như các hình cơ bản, chưa kể parcel nó bundle bằng cách copy mọi assets vào mục dist mà k tổ chức sẽ rất rối. Để làm parcel tự organize nó: 
+1) Ta có thể thêm trực tiếp 1 thư mục mới chứa riêng model đó vào parcel và làm tương tự với folder bên ngoài nhưng điều này là k nên vì ta k nên tự ý chỉnh sửa cấu trúc của bundle
+2) Giữ nguyên cấu trúc thư mục src và assets với các model cơ bản và ảnh bình thường. Bh ta có 1 model phức tạp:
+-> npm i -D parcel-reporter-static-files-copy -> npm i @parcel/config-default --save-dev 
+-> tạo .parcelrc (cùng cấp với src) và thêm vào:
+{
+  "extends": ["@parcel/config-default"],
+  "reporters":  ["...", "parcel-reporter-static-files-copy"]
+}
+=> để dùng plugin
+-> thêm vào package.json là:
+"staticFiles": {
+  "staticOutPath": "assets"
+},
+=> để bảo parcel bundle thư mục static thành thư mục tên là assets, k có cũng được nhưng phải có 1 folder lớn bao ngoài để organize
+-> tạo folder static cùng cấp src và thêm mọi thứ của model mới vào folder đó(phân biệt từng model với tên) và giữ nguyên cấu trúc
+-> load model gltf với gltfLoader như bth nhưng url là từ thư mục assets của dist trở đi
+=> Làm như v cũng chỉ là parcel copy cấu trúc thư mục vào assets folder mà k đổi tên thôi, bộ nhớ x2
+
+-> Customized loaded assets: Vc đầu tiên cần làm luôn là mở nó trong threejs editor để xem mọi thứ
+
+Các model lớn phức tạp thường tô màu mỗi nơi 1 khác nhau vì mỗi phần nó dùng 1 mesh và 1 material khác nhau r hợp lại thành 1 mesh hoàn chỉnh. Bh ta import cả model vào nhưng muốn chỉnh màu material cho 1 phần nào đó thì có thể console.log nó ra và refer đến từng children lồng nhau của model để chỉnh màu cho phần ta cần. Thực tế threejs có cách xử lý vấn đề này bằng 1 hàm lấy phần material nào ta muốn bằng name.
+Để có name thì có thể log ra, dùng blender, check xem trong docs của model khi tải xuống có nói về các phần này. Cách tốt nhất là mở nó trong threejs editor có thể xem name các sub mesh dùng cho phần nào và modify trực tiếp, ổn r mới code y hệt vào threejs, dùng thêm dat.gui để chỉnh cho perfect.
+
+Khi import các model từ nguồn khác phải có light cho nó thì mới hiển thị màu vì các model sẵn thường éo bh dùng basic material
+
+-> Clone và animate loaded assets cx k thể làm như mesh bth
+
+-> Load multi animation:
+Biến AnimationMixer như 1 animation player, như cục timeline trong blender
+Có thể dùng animation của model này cho model khác
+
+Phải update mixer trong render loop: mixer.update(clock.getDelta());
+hàm getDelta trả về ktg lần cuối gọi getDelta và thời gian hiện tại. Hay kc currenttime-oldtime đồng thời set old time là currenttime
+mixer.update tương tự cái timeline là vc chạy dần thanh time header để update animation. Mỗi lần thanh time head trong timeline cộng lên 1 lượng clock.getDelta giây so với số hiện tại. VD Ta dùng 40 frame thời gian tức chạm 40 nó tự quay ngược tiếp từ 0
+
+Dùng animation model này cho model khác, chỉ được với các animation chung chứ k được với amateur animation
+
+-> Để có bóng của model tải về(k tự tạo bằng threejs), mọi mesh trong nó phải cho cast shadow, ta phải duyệt
+
+
+
+# Ngôn ngữ GLSL ES
+Là OpenGL Shading Language. Cú pháp gần như C. Dùng để tạo shader.
+
+Xem các built-in function or mọi thứ khác của GLSL tại => https://shaderific.com/glsl.html
+
+-> Có 2 loại shader là: Vertex shader với <script type="x-shader/x-vertex"> và Fragment Shader với <script type="x-shader/x-fragment"> nhưng nhiều khi tên v có thể lỗi với vài thư viện như ThreeJS nên dùng type "vertex" và "fragment" thôi
+
+Code của shader viết trong hàm main
+
+Vertex shader là các lệnh gửi vào GPU thông qua WebGL mà đơn giản kiểu gán vị trí cho các điểm để tạo ra 1 mesh vì mọi 3d object đều cấu tạo từ vertex và vertex-shader set vị trí các vertex đó. Số lần chạy code của vertex-shader  bằng số lượng vertex compose tạo ra mesh. VD mesh có 500 vertices thì hàm main đó sẽ exec 500 lần để nhét từng vertex vào đúng chỗ. 
+Fragment shader: Sau khi có geometry tạo bởi vertices từ vertex shader, fragment shader sẽ tô màu, quy trình nó xử lý màu rất phức tạp bao gồm cả vc điểm ảnh hóa các thứ. Về lý thuyết, nó chia nhỏ mesh thành từng fragment và colorize từng fragment một.
+
+Có thể tạo color animation và geometry animation thông qua 2 loại shader
+
+-> Basic
+Chỉ có int, float, bool (ngôn ngữ này k có string)
+
+float e = float(false); // 0.0 phải tự cast hết
+
+-> Trong GLSL có 2 kiểu phổ biến là vector và matrix
+--> Vector
+Lấy giá trị: xrs, ygt, zbp, waq. VD: vị trí thì dùng xyz; màu sắc thì dùng rgba, còn stp khi làm vc với texture
+
+--> 4 loại storage qualifiers:
+---> attribute và uniform là các loại biến mà GLSL nhận được từ ngoài VD từ code JS chứ kp do chính GLSL cung giá trị
+attribute dùng cho các biến VD tọa độ đỉnh vì để tạo 1 tam giác, ta truyền vào 3 đỉnh thì 3 đỉnh đó có giá trị khác nhau. 
+uniform VD biến thời gian thì nên truyền vào là uniform vì 1 mốc thời gian chuẩn dùng chung cho mọi thứ VD các vertex dùng chung 1 thời gian. VD sau 5s, các biến thời gian cùng tăng giá trị lên 5s chứ kp mỗi cái 1 giá trị khác nhau như tọa độ vertex.
+Số lượng biến attribute cũng ít hơn số lượng biến uniform. attribute chỉ được dùng trong vertex shader còn uniform dùng trong cả 2 loại shader
+VD attribute vec2 pos; uniform float t;
+---> varying là kiểu biến để truyền từ vertex shader sang fragment shader. VD varying int a; có thể truyền được
+---> const đã biết
+
+--> có 3 loại precision qualifier để optimize khả năng sử dụng tài nguyên và lưu trữ đúng hơn: lowp, mediump, highp
+lowp là tốn ít nhất nhưng cẩn thận chọn độ chính xác k thì có thể cho kết quả sai. VD: mediump float f; // set precise qualifier cho biến f
+precision highp vec2; // mọi biến kiểu vec2 đều là dùng highp
+
+-> Dùng với ThreeJS
+--> vertex-shader: gl_Position là built-in var xác định position mỗi vertex. Giá trị của nó phụ thuộc vào thư thư viện 3d đang sử dụng. Trong threejs, nó xác định sẵn projectionMatrix, modelViewMatrix, position là các biến built-in của threejs. projectionMatrix và modelViewMatrix là biến tính toán liên quan tới camera view. position là tọa độ initial của vertex. Các giá trị có thể khác nhau tùy vào thư viện như babylonjs, pixeljs 
+
+--> Khi dùng biến uniform
+Điều đặc biệt là giá trị trong file JS đổi, biến uniform đổi thì GLSL mỗi lần render lại sẽ chạy lại code shader mang giá trị biến uniform mới
+
+--> Ta phải set giá trị cho biến built-in là gl_FragColor là nơi color của fragment stored, ta gán cho 1 vec4 lần lượt là RGBA. giá trị của nó chạy từ 0->1. Âm mặc định là 0, > 1 quay về 1
+
+
+
+# Dùng cannon.js
+Lightweight JS lib dùng kết hợp với các thư viện khác biểu diễn các hiện tượng vật lý real
+ThreeJS tạo entity bình thường, cannonjs tạo ra physical world và các entity trống bị ảnh hưởng vật lý => merge 2 vật lại
+npm i cannont-es -> import * as CANNON from "cannon-es";
+
+-> LockConstraint trong cannonjs cho phép ta gắn 2 object vào với nhau để giới hạn chuyển động, giảm degree of freedom của nó(khoảng nó có thể vary).
+
+
+
+## Bài toán
+-> Click vào màn hình là 1 object mới sinh ra tại vị trí click:
+Ở mức cơ bản, giải pháp là ta xây 1 mặt phẳng từ 1 normal vector(vector vuông góc với mặt phẳng và định hướng mp) và 1 coplanar point(thuộc mặt phẳng) bằng setFromNormalAndCoplanarPoint. 
+Ta chọn (0,0,0) là coplanar point và normalized vector là vector từ (0,0,0) đến tọa độ camera.
+Trong threejs có hàm normalize giúp normalize vector(thay đổi trực tiếp giá trị vector đó)
+Điểm mới sinh ra khi click là giao điểm của raycaster và mp này. ThreeJS cung hết các hàm xử lý hình học r.
+
+Vấn đề: raycaster k giao với mặt phẳng thì điểm mới k được tạo ra. Là khi ta xoay cam ngược với điểm (0,0,0); Các điểm tạo ra luôn giao với mp qua gốc O và vuông góc với vector camera nên bị 1 số ràng buộc về vị trí.
+
+Thực tế điều này kp vấn đề nếu ta thao tác trong 1 khung hình fix or chỉ xoay quanh gốc O. Cũng bình thường vì click chuột ta k chỉnh được độ xa gần của object tạo ra. Trong lập trình game sẽ tạo 1 object kề hay có quan hệ gì với 1 object khác thì xử lý khác
+
+-> Chia plane thành các ô và có thể chọn ô, thêm object vào ô, giới hạn số lượng object trong ô, animation cho object.
+Ý tưởng là dùng raycaster tìm điểm giao với plane và làm tròn về số nguyên để lấy tọa độ của ô trên plane. Xong ta muốn ô đó đổi màu thì k làm được mà phải tạo 1 mp mới kích thước 1x1 và position cho mp đó đè lên đúng vị trí ô được chọn trên plane dựa vào giá trị tọa độ vừa làm tròn, r tô màu cho mp đó. 
+Nhưng khi ta đè plane 1x1 vào ô [1][1] chẳng hạn thì tâm của nó nằm ở giá trị floor sau khi làm tròn là (0,0) thì ta lại phải cộng tọa độ lên lượng 0.5 nx để fix là xong
+
+Khi cần tạo nhiều object trong hàm, ta nên tạo 1 cục ở ngoài r bên trong dùng clone cho gọn chứ đừng có new liên tục trong hàm
+
+
+
+# Dùng yuka
+# Dùng react-three-fiber
+
+
+
+# Other
+-> Có threejs editor online có thể tạo object 3d dùng cho dự án nhưng k mạnh bằng các tool chuyên dụng như blender
+Sau khi có 3d model có thể test nó trong threejs editor trước khi hiển thị ra. Để play animation: chọn model trong scene và play trong object
+
+Khi 1 object có animation được tạo ra, các phần rời của nó sẽ có các animation riêng với tên riêng mà ta tạo trong các ứng dụng chỉnh sửa 3d model, cho vào threejs editor sẽ thấy các tên đó, phải biết tên đó mới chạy được nó trong code
+
+Các animation phức tạp như chuyển động cánh tay hay từng ngón tay thì phần design phải lo vì bản thân threejs k làm được điều này mà phải có trong model. Các animation cơ bản như di chuyển vật thể từ đâu sang đâu trong scene thì threejs sẽ lo được. Khi đó threeJS chạy animation trong model với AnimationMixer(khi có nhiều animation cho 1 model).
+
+-> sketchfab là 1 trong những assets store lớn nhất cung 3d model để dùng trong các dự án, tải về dạng GLTF
+
+-> quaternius là nơi ta có thể tìm nhiều model assets game 3d free. Các hình con vật hay gì có chuyển động ok luôn nhưng khá low poly
+
+-> https://3dtextures.me/ là trang chuyên cung các ảnh vật liệu material để làm bề mặt texture cho đồ vật như vải, gỗ,...
+
+-> GLTFLoader dung cache trong browser nếu đã từng load đường dẫn này r thì sẽ lấy từ cache mà k request lại server nữa. Dẫn đến khi ta đổi model này sang model mới trong thư mục assets thì vẫn hiện model cũ. Để fix tiện cho quá trình dev:
+1) Bật tab network và disable cache => cache sẽ k hoạt động chừng nào tab network đang bật, dùng khi đổi model liên tục
+2) Ctrl + Shift + delete -> xóa cache or tắt hẳn app browser bật lại
+=> Quan trọng nhất là delete cả .parcel-cache trong folder r chạy lại
+
+-> Còn rất nhiều phạm trù học như các hiệu ứng lửa khói particle map nhưng ta k đi sâu vì nó k phục vụ web front end bth. Dừng ở mức: tạo và load các model, xử lý vật lý, camera và các hiệu ứng ảnh, animation.
+

@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "dat.gui": "^0.7.9",
+    "gsap": "^3.11.0",
+    "three": "^0.143.0"
+  },
+  "devDependencies": {
+    "@parcel/config-default": "^2.7.0",
+    "parcel-reporter-static-files-copy": "^1.4.0"
+  }
+}

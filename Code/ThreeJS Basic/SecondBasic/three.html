@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+	<!-- # Basic -->
+	<!-- Dùng package npm three và bundle thủ công -->
+	<head>
+		<title>three.js webgl - geometry - text</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	</head>
+	<body>
+		<!-- Bundle thủ công: phải tự thêm map polyfill. Có thể bỏ script này đi khi polyfill này được sử dụng
+			rộng rãi ở mọi trình duyệt trong tương lai -->
+		<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "./node_modules/three/build/three.module.js"
+				}
+			}
+		</script>
+
+		<script type="module">
+			import * as THREE from 'three';
+
+			const scene = new THREE.Scene();
+			const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+			const renderer = new THREE.WebGLRenderer();
+			renderer.setSize( window.innerWidth/2, window.innerHeight/2 );
+			document.body.appendChild( renderer.domElement );
+
+			const geometry = new THREE.BoxGeometry( 1, 1, 1 );
+			const material = new THREE.MeshBasicMaterial( { color: 0x00ff00, wireframe: true } );
+			const cube = new THREE.Mesh( geometry, material );
+			scene.add( cube );
+			camera.position.z = 5;
+
+			function animate() {
+				requestAnimationFrame( animate );
+				cube.rotation.x += 0.01;
+				cube.rotation.y += 0.01;
+				renderer.render( scene, camera );
+			};
+
+			animate();
+		</script>
+	</body>
+</html>

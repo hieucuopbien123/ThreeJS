@@ -1,0 +1,21 @@
+-> OpenGL là một API đa nền tảng, đa ngôn ngữ cho render đồ họa vector 2D và 3D. 
+WebGL(Web graphic lib) là thư viện đồ họa phát triển từ OpenGL ES 2(1 nhánh của OpenGL làm đồ họa cho hệ thống nhúng) nhưng chỉ chuyên dành cho web, là lightweight của opengl. Nó hoạt động tốt trên các phần cứng 3D hiện đại. WebGL là JS API dùng được trong HTML5 và hiển thị trong thẻ <canvas>, điều này cho phép nó truy cập và sử dụng GPU(Graphics Processing Unit) để xuất đồ họa. Do hình ảnh được xử lí bằng GPU nên CPU (Central Processing Unit) sẽ "rảnh" hơn, qua đó giảm được tình trạng giật khi render (quá trình tạo ra 3D). Nó dùng engine raster. 
+
+OpenGL là link giữa app và graphic card làm nhiệm vụ render ra màn hình. Nhưng browser k hiểu mà đến năm 2011 ra đời webgl, browser mới thao tác được với graphic card. 
+Bản chất WebGL cũng chỉ là 1 set of code JS tương tác giữa browser và graphic card. Shaders là các chương trình nhỏ nhúng vào application phần WebGL dưới dạng string hoặc script tag để thực thi. Shader được viết bằng ngôn ngữ GLSL ES là ngôn ngữ khá giống C
+
+Threejs or babylonjs or các thư viện 3d bình thường của JS là 1 layer trung gian giữa app với WebGL API để đơn giản code webgl, kiểu gì render 3d cũng qua WebGL.
+WebGPU là API được đánh giá là performace tốt hơn WebGL khi render complex 3d scene, cũng là tương tác với GPU hardware for web.
+
+App -> thư viện 3D -> WebGL[có các shader bên trong] / WebGPU -> graphic card -> hiển thị ra màn hình
+
+=> frontend coder k cần quan tâm về actual API của WebGL mà cần vận dụng tối đa các thư viện đã deal sẵn với API rồi như ThreeJS hay Babylonjs
+
+
+-> ThreeJs:
+Three.js là một thư viện Javascript hỗ trợ developer làm 3D trên web được xây trên WebGL giúp thao tác đơn giản hơn.
+Với các animation cơ bản ta có thể dùng css bth nhưng 3D animation phức tạp thì buộc dùng ThreeJS đi kèm.
+
+
+-> Đồ họa vector có thể dùng thiết kế 1 lần cho mọi kích thước từ thẻ kinh doanh sang biển quảng cáo lớn, nó k thể hiển thị chất lượng tựu nhiên của ảnh, nhẹ hơn raster và màu sắc ít hơn. Đồ họa raster chơi điểm ảnh phóng to mất chất lượng nên thường dùng với tệp lớn, nó chỉnh sửa được nhiều màu sắc hơn vector, thường dùng trong web và in. 
+

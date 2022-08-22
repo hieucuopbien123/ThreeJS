@@ -1,0 +1,7 @@
+body{
+    background-color: #000000; /* chỉ dùng # mà k dùng 0x trong css */
+}
+
+#three-canvas-container{
+    height: 100vh !important;
+}

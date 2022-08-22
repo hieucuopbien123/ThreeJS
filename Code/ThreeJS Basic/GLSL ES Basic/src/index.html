@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learn GLSL</title>
+    <style>
+        body{
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- # Ngôn ngữ GLSL ES  -->
+
+    <script id="vertexShader" type="vertex">
+        uniform float u_time; // Buộc tạo ngoài hàm main
+        varying vec2 vUv;
+        void main() {
+            vUv = uv;
+
+            //Học GLSL ES
+            bvec4 vectB = bvec4(true, true, false, false);
+            /* éo hiểu sao có phần code này thì éo chạy
+            vec3 vectA = vec2(1.0); // 3 giá trị 1.0
+            vec2 vectD = vec2(vectA); // lấy 2 giá trị đầu
+            vec4 vectE = vec4(vectD, vectA);
+            ivec2 vectF = ivec2(1, 2);
+            ivec2 vectG = vecF.yx; // vectG(2,1)
+            ivec2 vectH = vecF.yy; // vectG(2,2)
+
+            // Kiểu matrices trong GLSL có mat2, mat3, mat4 là max. Thứ tự xếp theo từng cột từ trái qua,
+            // mỗi cột lấy từ trên xuống
+            mat3 matA = mat3(1,1,false,false); // Convert hết về float là 1.0, 1.0, 0.0, 0.0
+            matA[1][1] = 100.0; // Cột 2 phần tử 2
+            vec2 vecX = matA[0]; // Mỗi cột là 1 vector, vecX(1.0,1.0) nên
+            float x = matA[0]y; // Cột 1 phần tử 2 
+
+            // Các kiểu vector và matrices có các phép toán ++, +=, +,.. như bth
+            // Còn kiểu sampler có 2 loại là sampler2D và samplerCube dùng lưu ảnh
+            
+            // Custom type:
+            struct myType{
+                int c1;
+                vect3 c2;
+            }
+            myType a;
+            a.c1 = 10;
+            vect3 vect = a.c2;
+            // Có kiểu array, if else for function void y hệt C. Có cả prototype:
+            vec2 funcE(float x, float y);
+            vec2 vect = funcE(1.0,1.0);
+            vec2 funcE(float x, float y) {
+                return vec2(1.0, 2.0);
+            }
+            */
+
+            // Để tạo animate, ta có thể thay đổi vị trí point của hình theo thời gian. Nhưng trong GLSL k có biến
+            // thời gian mà ta phải truyền vào từ JS dạng uniform:
+            float newX = sin(position.x*u_time) * sin(position.y*u_time);
+            vec3 newPosition = vec3(newX, position.y, position.z);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+        }
+    </script>
+    <script id="fragmentShader" type="fragment">
+        uniform float u_time;
+
+        // Ta có thể tạo gradient theo trục x của màn hình tức càng gần lề trái càng tối, càng gần lề phải càng sáng. 
+        // Biến u_resolution truyền vào nắm kích thước của màn hình
+        uniform vec2 u_resolution;
+
+        // Color animation với vị trí chuột. Lại truyền vào vị trí chuột từ JS qua uniform
+        uniform vec2 u_mouse;
+
+        uniform sampler2D image;
+
+        varying vec2 vUv;
+        void main() {
+            /*
+            // Color với với vị trí trên screen
+            vec2 st = gl_FragCoord.xy / u_resolution; // tương đương gl_FragCoord.xy / u_resolution.xy là chia 2 vector
+            // tức chia 2 cái x và y cho nhau ấy. Phải chia tỉ lệ vì color hay các thứ của GLSL chỉ nhận từ 0->1 
+            gl_FragColor = vec4(0.0, u_mouse.x, st.y, 1.0);
+            // Biến built-in gl_FragCoord lưu tọa độ của fragment đang xử lý
+
+            // Color với thời gian
+            // gl_FragColor = vec4(1.0, sin(u_time), 1.0, 1.0);
+            */
+
+            // Dùng ảnh vào vật thể
+            vec2 st = gl_FragCoord.xy / u_resolution;
+            //vec4 texture = texture2D(image, st); // Convert ảnh thành texture. 
+            vec4 texture = texture2D(image, vUv);
+            
+            //Bản chất: kích thước màn hình của ta(u_resolution) k thay đổi khi ta phóng to thu nhỏ 1 vật thể trong 
+            //scene nhưng tọa độ của vật thể trong scene so với màn hình ta(0->1) có thay đổi, giá trị đó lưu trong 
+            //gl_FragCoord. Vc ta gán giá trị texture vào gl_FragColor chính là để cho texture chỉ hiện ra ở trong 
+            //vùng của fragment rồi. Nhưng hiển thị gì trong vùng đó thì tọa độ texture cần phải xác định bằng đối 
+            //số 2. Nếu truyền như trên thì texture nó full cả màn hình và surface hiển thị của nó là cả màn hình
+            //Nếu ta truyền kiểu vec2(st.x + sin(u_time), st.y); sẽ thấy bức ảnh dao động nhưng luôn luôn chiếm cả
+            //màn hình. Tọa độ của fragment chính ở đây tạo ra cùng không gian cả màn hình. Ta cx k rõ cách custom 
+            //cho nó theo 1 mặt phẳng kp cả màn hình thì như nào
+            
+            //VD: 1 ảnh cấu tạo từ 3 màu, nếu ta lấy mặc định hết xong chỉ thêm tông màu xanh của texture thì chỉ có ảnh
+            //ở màu xanh, dùng cả 3 màu sẽ hiển thị đầy đủ màu ảnh
+            //gl_FragColor = vec4(0.0, texture.g, 0.0, 1.0);
+
+            // Thêm hiệu ứng
+            float effect = abs(sin(texture.x + u_time));
+            gl_FragColor = vec4(vec2(effect), texture.b, 1.0);
+            
+            // Ảnh hiện ok nhưng nó k dính với mesh mà nó như chiếu lên 1 tấm màn đằng sau và mesh chỉ như 1 cái camera
+            // soi vào thôi. Bởi vì bên trên texture2D ta set surface để texture hiển thị là cả màn hình. Ta cần chỉnh lại
+            // để ảnh appear full trong mesh bằng cách truyền vào surface của plane làm đối số 2 của texture2D
+            // Trong fragment shader k có built-in var nào lưu thông tin này nhưng Threejs đã cung 1 biến attribute sẵn 
+            // trong vertex-shader với tên là uv lưu thông tin này. Ta chỉ cần pass nó qua fragment shader qua varying 
+            // variable. Cái khó của cái này là dùng phương trình toán học biểu diễn ra vật thể 3d model trong vertex shader
+        }
+    </script>
+
+    <script src="./js/scripts.js" type="module"></script>
+</body>
+</html>

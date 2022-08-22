@@ -1,0 +1,151 @@
+## Dùng react-three-fiber:
+React k muốn các công nghệ khác tác động vào hệ thống DOM của nó mà không qua các method mẫu chuẩn mà nó cung cấp. Nếu ta dùng threejs với React cũng được nhưng code phần threejs nó như được tách ra 1 mục context riêng và bị hạn chế rất nhiều. Thư viện này ra đời để biến three thành styled component chuẩn của react
+
+Có thể dùng với dự án react thuần (webpack lệnh create-react-app) hoặc dùng với vite cũng là 1 bundle tool nhưng tốc độ nhanh hơn webpack và nhiều tiện lợi khác, nếu dùng webpack thì setup cũng tương tự thôi => mặc định dự án ta dùng vite. Nên chuyển qua dùng vite hoàn toàn để tránh lag
+
+docs: https://github.com/pmndrs/drei
+
+Nó kết hợp được với rất nhiều loại thư viện khác nhau như: 
+@react-three/gltfjsx – turns GLTFs into JSX components
+@react-three/drei – useful helpers for react-three-fiber
+@react-three/postprocessing – post-processing effects
+@react-three/flex – flexbox for react-three-fiber
+@react-three/xr – VR/AR controllers and events
+@react-three/cannon – physics based hooks
+@react-three/a11y – real a11y for your scene
+zustand – state management
+react-spring – a spring-physics-based animation library
+react-use-gesture – mouse/touch gestures
+leva – create GUI controls in seconds => thế cái dat.gui đi
+=> @react-three/fiber chỉ cung cấp hook dùng cho three của dự án thôi.
+
+Các bản mới luôn có @react-three ở đầu, k dùng react-three-fiber package là version cũ rồi
+
+
+
+# Basic
+-> Setup:
+npx create-vite -> tạo dự án bth
+npm i three @react-three/fiber gsap => đôi khi dùng yarn lỗi
+
+Thẻ Suspense dùng để lazy loading có 2 chức năng: 1 là phòng component bên trong lớn thì chỉ load khi cần thiết; 2 là xử lý độ trễ của vc load qua fallback mà k hiện màn hình trắng báo lag. Chứ bth ta chỉ xử lý fetch API thì hiện loading nhưng fetch xong thì delay cấu hình khi hiển thị nx thì cần Suspense xử lý. Nên dùng thẻ Suspense với Three vì vc load 3d model cần nhiều time và ta vẫn cần hiện các component khác đã load xong ra thay vì 1 page trắng lag
+
+Thẻ Canvas lo hiện scene 3d nhưng k có style gì cả mà phải đặt id để style nó. Bên trong thẻ canvas ta k thể dùng các thẻ dom như div bth đc nx vì nó đang kẹp trong 1 thẻ canvas thì bên trong k có DOM mà chỉ có vẽ. Package drei cung các helper như tag Html giúp ta code thẻ html ở trong thẻ canvas:
+npm i @react-three/drei
+Vd ta cần hiển thị fallback cho Suspense là DOM thì buộc dùng vì nó kẹp trong thẻ Canvas. Thực chất nó tự động đưa phần code đó ra bên ngoài thẻ canvas và cho position absolute đè lên trên canvas mà thôi.
+
+Mặc định react-three-fiber cung sẵn 1 empty scene, renderer và default camera, xử lý lỗi resize window. Nếu cần cam, thực chất ta override cái cam có sẵn, boolean makeDefault của cam làm việc đó, tâm cam k nhìn vào 0,0,0 mà buộc dùng các control để chỉnh điểm lookAt
+
+-> Khi khởi tạo OrbitControls, nó mặc định dùng trên cái camera đang dùng
+Azimuthal angle là góc quay ngang quét được khi nhìn vẫn focus vào tâm vật(thực chất cam quay hình cầu xung quanh vật với OrbitControls)
+Polar angle là góc nhìn vật hợp với trục dọc vuông góc với mp, start từ top
+
+Perspective cam bình thường thay đổi position sẽ đi theo đường thẳng ở 2 trục còn OrbitControls khi đổi vị trí cam, chuột trái sẽ chỉ đổi dựa vào 2 loại góc bên trên, chuột phải đổi thông số 3 trục Oxyz
+
+-> Refresh rate là maximum rate có thể create trong 1s. VD fps là 60 mà có TH cần dùng nhiều hơn 60 frame 1s thì các frame thừa sẽ bị drop vì hệ thống k xử lý được nhưng cứ request frame mới sẽ bị v. JS quản lý điều này bằng 1 hàm requestAnimationFrame nhận 1 hàm callback thì hàm này sẽ chỉ được thực hiện khi system có khả năng thực hiện 1 frame mới, nếu system gặp vấn đề thì k làm. Còn trong three nó có tương tự là renderer.setAnimationLoop(callback)
+Trong react three fiber ta dùng hook useFrame chức năng y hệt, mọi thứ trong hàm thực hiện max là 60 lần 1s. Nó có state có thể lấy rất nhiều thứ như camera đang dùng, vị trí chuột tự động được normalize theo tọa độ chuẩn r.
+
+-> Map có nhiều loại như color map, normal map, displacement map, environment map(đã biết), bump map, emission map, light map, alpha map, rough map,... Map tức là ta đang ánh xạ 1 bức ảnh vào 1 model khác có kích thước tương đồng. VD màu của model trùng màu ảnh. Thì cụ thể nó là vc surface của vật sẽ có chi tiết như thế nào. Ta có thể dùng đủ loại map với từng material trong threejs
+Displacement map là loại map cho biết độ cao thấp của bức ảnh. Vd ta cung vào 1 model hình núi làm material cho plane nhưng núi thì gồ ghề và phải chiếu mọi thứ khác với 1 bề mặt phẳng mà threejs thường làm. Thì displacement map là ta cung vào 1 bức ảnh định nghĩa độ cao thấp cho map. Khi đó threejs xử lý chỗ nào tối cho thấp, chỗ nào cao cho nhô lên tạo ra hình ảnh như núi thực sự trên bề mặt dù ban đầu ta cung vào 1 bức ảnh phẳng. Đó là vai trò của displacement map
+
+-> Cùng 1 màu ở 2 loại material cho kết quả khác nhau, muốn đồng bộ có thể dùng dat.gui nhưng k chuẩn. Cài:
+npm install react-dat-gui --save -> Vd trong https://codesandbox.io/s/ntfx2?file=/src/index.js
+=> Phải dùng ngoài thẻ canvas. Dùng bản cũ trong useEffect [] thực chất lại ngon hơn, tắt strictmode đi.
+
+-> Animation dùng trong model tải về rất dễ, dùng gltf lấy ra là có biến chạy animation rồi
+
+
+
+### IMPORTANT ###
+Thứ tự truyền vào component args là 1 mảng tương ứng với đối số của constructor class đó trong three
+
+Nếu k có light thì mọi object đều màu đen
+
+Ta có thể xem mọi thuộc tính của object bằng cách tạo useRef tới nó và log nó ra và dùng current của nó gọi mọi hàm ta muốn, thế là như threejs bth
+Các example trong docs có các options giúp ta xem các parameter để chỉnh rất tiện
+
+Vẫn truyền được vào import * as THREE from "three"; để dùng các marco
+
+Để sửa các thuộc tính của thẻ bằng code, ta dùng ref + useEffect
+
+Model import vào thì k thể ref được khi dùng ở component khác nên chỉ sửa được trong chính bản thân nó or truyền props vào thôi
+
+Với mọi thứ trong react fiber, ta nên dùng component hoàn toàn, nếu dùng useEffect làm như Threejs thuần cũng được nhưng sẽ gặp vài lỗi vì react render cây DOM của nó lên hết rồi mới chạy useEffect sau. VD ta render tất cả lên xong hiển thị cho người dùng, xong bên trong useEffect lại chạy load 1 tấm background hdr cực lớn nx thì người dùng sẽ bị lag vì đã hiển thị ra cho họ thao tác rồi. Nhưng nếu dùng component Environment để load cái hdr đó ngay từ đầu thì mọi chuyện được giải quyết.
+
+Các thứ cũ dùng ở three mà sang useEffect có thể bị lỗi lặp 2 lần trong StrictMode.
+
+Nếu muốn nhiều hình 3d ở các vị trí khác nhau, rất đơn giản là ta dùng nhiều thẻ Canvas mà thôi
+
+Trong khi bth ta phải dùng RayCaster để xem ta click vào object nào, react ta có thể làm dạng thẻ jsx thì đương nhiên dùng sự kiện onClick phát là xong, nó tự bắt object ta click vào. Còn muốn lấy tọa độ thì mới phải dùng RayCaster thôi
+
+Quy tắc quan trọng là khi ta muốn dùng useFrame cho 1 component, ta nên tách riêng ra 1 functional component riêng và dùng useFrame trong đó chứ k dùng trong component container lớn
+
+Nên dùng toneMapping là NoToneMapping cho Canvas vì mặc định màu sắc tonemapping trong react-three-fiber set enable bị thay đổi so với màu sắc chuẩn của three
+
+Trong drei có nhiều helper hay như MeshReflectorMaterial, MeshWobbleMaterial, MeshDistortMaterial, PointMaterial,... tự tạo animation đẹp cho ta
+
+Có 2 mô hình là: 
+canvas full màn hình và text ở trên vị trí nào đó, canvas như v sẽ như kiểu background và chỉ dùng trong màn hình đó thôi: ta dùng position absolute cho các thẻ khác và overflow hidden thẻ container là #root với react or body với width height 100%
+canvas chỉ như 1 thẻ nhỏ làm gì đó thôi đơn giản dùng như bth, muốn nhiều canvas thì dùng nhiều tag Canvas mà thôi
+
+
+
+# Tải và dùng model
+Cho vào 1 folder models riêng trong src. Mặc định ta dùng trong src chứ k copy vào public làm gì.
+
+Extension VSC giúp mở file gltf là GLTF Tools: chọn file gltf muốn mở trong vsc -> CTRL + SHIFT + P -> GLTF: Preview 3D model
+
+Trong react này, ta có thể import trực tiếp với useLoader, import sau khi nén với useLoader và DRACOLoader, import dùng component jsx. Nếu import 3d model trực tiếp thì chỉ sửa được trên editor, import bằng jsx có thể sửa thêm trong jsx nx. Nhưng ta nên dùng jsx hơn vì nếu dùng kiểu bth có khác gì dùng hết trong useEffect với three thuần đâu, react thì phải dùng component của react chứ
+
+-> (bỏ)Package gltf-pipeline giúp ta gom mọi file gltf, bin, texture thành 1 file gltf duy nhất và tùy chọn kiểu nén:
+npm i gltf-pipeline -> cd vào thư mục -> gõ gltf-pipeline xem các loại lệnh nén
+VD: gltf-pipeline -i scene.gltf -o model.glb --draco.compressionLevel 10 -d -b
+=> K nên dùng package này vì nó gây mất chi tiết và tự động sửa đổi các thứ của model nhìn xấu, nén cx chả được bnh
+
+-> ThreeJS Editor cx giúp nén tất cả mọi thứ thành 1 file gltf duy nhất đơn giản bằng cách kéo thả các thứ và export ra 1 file gltf bth. Nó cũng cho phép chỉnh sửa các thứ, VD 1 model ta down về tự dưng nó bị lỗi bóng hay màu sắc k tốt, ta hoàn toàn sửa được r lấy lại ra bằng threejs. Chỉ là xử lý các model lớn nó hơi lag tí. K hỗ trợ nén file
+
+-> Thư viện pro nhất: gltfjsx
+Thư viện giúp biến model 3d thành dạng code jsx component mà có thể cho vào trong Canvas để hiện ra. Thư viện này cũng hỗ trợ gom tất cả thành 1 file duy nhất và nén file cực mạnh, nó nén nhỏ tối đa nhưng vẫn đảm bảo chất lượng đầy đủ và file nhỏ làm load rất nhanh. Kể cả k dùng code jsx vẫn nên dùng nó để nén file để đỡ lag
+Bên cạnh đó, threejs cho phép edit nhưng vài tính năng dùng gltfjsx tiện hơn, VD nó có options cho phép model hiện shadow luôn, nếu ta làm trong threejs editor sẽ phải vào từng component 1 và tick vào tính năng cast shadow. Nếu dùng parcel ta có thể chạy vòng lặp làm điều này nhưng trong react ta k thể lấy được instance của nó mà buộc phải thao tác với từng component mesh và thêm tính năng vào: npm i gltfjsx -g 
+gltfjsx model.glb => k nén
+gltf model.glb -T --shadows => nén và giữ shadow
+
+Khi ở dạng component, ta có thể vào edit thêm tính năng hay xóa các component nào thoải mái. Thậm chí thêm animation với gsap cho model ok
+
+=> Cách hay nhất là tải model về -> mở bằng threejs editor để xem component nào tương ứng cái gì và sửa nếu thích -> download từ threejs editor về bản đã sửa -> dùng gltf để nén và thêm các tính năng khác như shadow nếu thích vì sửa bằng threejs editor cái này mất tg -> sửa tiếp trên jsx -> dùng trong dự án. 
+Nếu threejs editor chả sửa màu hay gì thì có thể dùng gltfjsx nén và dùng luôn code jsx
+
+-> Với các bức ảnh được nén, ta phải dùng DRACOLoader mới load được file, nếu k sẽ lỗi:
+Để có thư mục của draco, ta copy nó từ trong /examples/js/libs/draco/ trong package npm của three
+
+
+
+# Phân biệt environment và background trong three và fiber:
+-> Khi làm vc với three js, ta có thể gán scene.background để set hình nền và scene.environment để set môi trường cho không gian, set ảnh thì nó là ảnh, set màu thì nó là màu:
+scene.environment khi set thì mọi object dùng đúng chất liệu sẽ bị ảnh hưởng. Nếu chỉ muốn vài object bị ảnh hưởng thì object đó set option envMap là texture đó.
+Dùng envMapIntensity để chỉnh mức độ nhưng nó đi kèm với mọi thứ của object kể cả màu chứ k chỉ là envMap, set là 0 thì thành cục đen cmnl
+
+-> Khi làm vc với react fiber:
+Vẫn có thể dùng như trên với useEffect nhưng kbh làm v.
+Để set environment hay background ta dùng thẻ Environment với 2 options background true false only để set. Nếu là hdr dùng files, nếu là màu bth dùng mesh sphere và basic material bên trong
+Còn nếu object nào k muốn bị ảnh hưởng thì cho envMapIntensity là 0.01
+
+
+
+# react-spring
+Với animation tự tạo thì dùng trong useFrame. Animation tự tạo mà muốn sequent thì có thể dùng useSpring kết hợp từ react-spring
+Để cài react-spring: npm i @react-spring/three => import { useSpring, a } from "@react-spring/three";
+
+Phải kẹp thẻ animated. bao ngoài thẻ ngoài cùng để các component bên trong có khả năng dùng attribute hook của useSpring
+
+
+
+# Other:
+Dừng: group, preload, tạo donut, sóng, displacement và alpha map tạo đồi núi, roughnessMap và diffuseMap, metalMap cho standard mat, PMREMGenerator
+=> K đủ tg học hết tất cả
+Link dừng: 
+https://www.youtube.com/watch?v=2AQLMZwQpDo
+https://www.youtube.com/watch?v=wRmeFtRkF-8&list=PLkQj0oVF_lCyCnVRYZMvjhoMSHSre6Dge&index=2 => cả 1 series dài ngoằng
+https://www.youtube.com/watch?v=Admy7aU5ya0&t=2s => series vẫn tiếp tục
+https://stackoverflow.com/questions/66059090/how-to-add-map-and-roughnessmap-in-threejs => roughness map ví dụ hay, có cả PMREMGenerator
+
