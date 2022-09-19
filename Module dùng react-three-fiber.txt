@@ -1,4 +1,6 @@
 ## Dùng react-three-fiber:
+Tương thích react version 18
+
 React k muốn các công nghệ khác tác động vào hệ thống DOM của nó mà không qua các method mẫu chuẩn mà nó cung cấp. Nếu ta dùng threejs với React cũng được nhưng code phần threejs nó như được tách ra 1 mục context riêng và bị hạn chế rất nhiều. Thư viện này ra đời để biến three thành styled component chuẩn của react
 
 Có thể dùng với dự án react thuần (webpack lệnh create-react-app) hoặc dùng với vite cũng là 1 bundle tool nhưng tốc độ nhanh hơn webpack và nhiều tiện lợi khác, nếu dùng webpack thì setup cũng tương tự thôi => mặc định dự án ta dùng vite. Nên chuyển qua dùng vite hoàn toàn để tránh lag
@@ -25,7 +27,7 @@ Các bản mới luôn có @react-three ở đầu, k dùng react-three-fiber pa
 
 # Basic
 -> Setup:
-npx create-vite -> tạo dự án bth
+npx create-vite -> tạo dự án bth => npm i => npm run dev
 npm i three @react-three/fiber gsap => đôi khi dùng yarn lỗi
 
 Thẻ Suspense dùng để lazy loading có 2 chức năng: 1 là phòng component bên trong lớn thì chỉ load khi cần thiết; 2 là xử lý độ trễ của vc load qua fallback mà k hiện màn hình trắng báo lag. Chứ bth ta chỉ xử lý fetch API thì hiện loading nhưng fetch xong thì delay cấu hình khi hiển thị nx thì cần Suspense xử lý. Nên dùng thẻ Suspense với Three vì vc load 3d model cần nhiều time và ta vẫn cần hiện các component khác đã load xong ra thay vì 1 page trắng lag
@@ -36,7 +38,7 @@ Vd ta cần hiển thị fallback cho Suspense là DOM thì buộc dùng vì nó
 
 Mặc định react-three-fiber cung sẵn 1 empty scene, renderer và default camera, xử lý lỗi resize window. Nếu cần cam, thực chất ta override cái cam có sẵn, boolean makeDefault của cam làm việc đó, tâm cam k nhìn vào 0,0,0 mà buộc dùng các control để chỉnh điểm lookAt
 
--> Khi khởi tạo OrbitControls, nó mặc định dùng trên cái camera đang dùng
+-> Dùng cam: Khi khởi tạo OrbitControls, nó mặc định dùng trên cái camera đang dùng
 Azimuthal angle là góc quay ngang quét được khi nhìn vẫn focus vào tâm vật(thực chất cam quay hình cầu xung quanh vật với OrbitControls)
 Polar angle là góc nhìn vật hợp với trục dọc vuông góc với mp, start từ top
 
@@ -53,6 +55,11 @@ npm install react-dat-gui --save -> Vd trong https://codesandbox.io/s/ntfx2?file
 => Phải dùng ngoài thẻ canvas. Dùng bản cũ trong useEffect [] thực chất lại ngon hơn, tắt strictmode đi.
 
 -> Animation dùng trong model tải về rất dễ, dùng gltf lấy ra là có biến chạy animation rồi
+Animation cơ bản với useFrame
+
+-> Load texture
+
+-> Dùng gsap
 
 
 
@@ -118,6 +125,17 @@ Nếu threejs editor chả sửa màu hay gì thì có thể dùng gltfjsx nén 
 -> Với các bức ảnh được nén, ta phải dùng DRACOLoader mới load được file, nếu k sẽ lỗi:
 Để có thư mục của draco, ta copy nó từ trong /examples/js/libs/draco/ trong package npm của three
 
+-> Dùng animation của model: có thể chạy song song or liên tiếp
+
+-> Xử lý loading:
+Ta có thể dùng Suspense callback để hiển thị ra component loading cho người dùng khi mọi thứ chưa render xong kèm với Html của drei
+Dùng kết hợp với useProgress của drei để biết các thứ của three bên trong đã tải xong chưa
+=> Bên cạnh đó thì các loader bth nếu ta dùng useLoader thì có thể thêm loading manager như trong three thuần nhưng k nên
+=> Ta cũng có thể tách là load cái gì nhanh thì load trước còn cái gì chậm thì dùng Suspense bao cái đó mà thôi nhưng thực tế khi thao tác với model 3d nó rất lag nên dù load trước nhưng vẫn lag tung giời mà ta chả thao tác được gì hơn. Do đó người ta khuyên là khi load 3d thì nên load cả trang và phủ 1 lớp kiểu k cho tương tác ấy vì tương tác sẽ rất lag nên tránh giảm performance
+=> Với các model 3d chuyển thành component thì render bth nhưng các bức ảnh hdr lớn làm Enviroment thì là cả vấn đề vì load rất lâu và tuân thủ tránh lag là ta phải load cả màn hình chỉ vì chờ cái đó thôi
+
+-> Để load 1 model nhiều lần phải dùng clone
+
 
 
 # Phân biệt environment và background trong three và fiber:
@@ -141,11 +159,25 @@ Phải kẹp thẻ animated. bao ngoài thẻ ngoài cùng để các component 
 
 
 # Other:
-Dừng: group, preload, tạo donut, sóng, displacement và alpha map tạo đồi núi, roughnessMap và diffuseMap, metalMap cho standard mat, PMREMGenerator
+-> Dừng: group, tạo donut, sóng, displacement và alpha map tạo đồi núi, roughnessMap và diffuseMap, metalMap cho standard mat, PMREMGenerator
 => K đủ tg học hết tất cả
 Link dừng: 
-https://www.youtube.com/watch?v=2AQLMZwQpDo
+https://www.youtube.com/watch?v=2AQLMZwQpDo => displacement and alpha map
 https://www.youtube.com/watch?v=wRmeFtRkF-8&list=PLkQj0oVF_lCyCnVRYZMvjhoMSHSre6Dge&index=2 => cả 1 series dài ngoằng
-https://www.youtube.com/watch?v=Admy7aU5ya0&t=2s => series vẫn tiếp tục
+https://www.youtube.com/watch?v=Admy7aU5ya0&t=2s => series three thuần vẫn tiếp tục
 https://stackoverflow.com/questions/66059090/how-to-add-map-and-roughnessmap-in-threejs => roughness map ví dụ hay, có cả PMREMGenerator
+
+####
+# Basic
+### IMPORTANT ###
+# Tải và dùng model
+# Phân biệt environment và background trong three và fiber
+# react-spring
+# Other
+####
+
+-> Tổng kết khác: 
+Animation có: useFrame, react-spring, gsap, animation của chính model đó
+load các thứ: hdr, texture, DRACO load compressed file, load model 3d bth với thư viện
+Các thứ quan trọng: các thứ cơ bản của three, load 3d model, dùng animation, xử lý shadow.
 

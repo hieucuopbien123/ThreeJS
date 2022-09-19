@@ -9,42 +9,27 @@ import { useFrame, useGraph } from '@react-three/fiber';
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 const model = new URL("./models/Stag-transformed.glb", import.meta.url);
 
-export function Stag(props) {
+export function Stag2(props) {
   const group = useRef(null);
-  // # Tải và dùng model
-  // Để load được 1 model nhiều lần, phải clone vì import bằng useGLTF chỉ coi là 1, hiển nhiên tốn perfomance
   const { materials, animations, scene } = useGLTF(model.href);
   const clone = useMemo(() => SkeletonUtils.clone(scene), [scene]);
-  const { actions, mixer } = useAnimations(animations, group);
   const { nodes } = useGraph(clone);
 
-  /*
-  Cái useGraph: là hook tạo ra các memorized object, material từ bất cứ Object3D nào
-  VD: const { nodes, materials } = useGraph(scene)
-  Ở trên ta clone object ra rồi dùng nodes của clone, đáng lẽ nên dùng cả material của clone nx thôi
-  */
+  const { actions } = useAnimations(animations, group);
+  const { action } = props;
+  const previousAction = usePrevious(action);
 
   // # Tải và dùng model / Dùng animation của model
   useEffect(() => {
-    // Chạy parallel
-    // actions.Idle_2.play();
-    // actions.Death().play();
-
-    // Chạy liên tiếp
-    actions.Idle_2.play();
-    actions.Idle_2.setLoop(THREE.LoopOnce, 20);
-    actions.Death.setLoop(THREE.LoopOnce, 20); // 1 là loopmode, 2 là số lần lặp nếu dùng mode LoopRepeat
-    mixer.addEventListener("finished", function(e){
-      if(e.action._clip.name == "Idle_2"){
-        actions.Death.reset();
-        actions.Death.play();
-      } else if(e.action._clip.name == "Death"){
-        actions.Idle_2.reset();
-        actions.Idle_2.play();
-      }
-    })
-    // Dựa vào mixer kiểm soat hoàn toàn animation
-  }, [mixer]);
+    console.log("Here");
+    console.log(previousAction);
+    if (previousAction) {
+      actions[previousAction].fadeOut(0.2);
+      actions[action].stop();
+    }
+    actions[action].play();
+    actions[action].fadeIn(0.2);
+  }, [actions, action, previousAction]);
   return (
     <group ref={group} {...props} dispose={null}>
       <group name="Scene">
@@ -68,12 +53,18 @@ export function Stag(props) {
 }
 useGLTF.preload(model.href);
 
-/*
-# Tải và dùng model
-
-Cú pháp: useLoader.preload(GLTFLoader, '/model.glb')
-sẽ load assets cần dùng trong global space thì model này sẽ có thể được load từ trước khi nó dùng ở trong component. 
-Vc dùng như này thì về sau khi dùng model, nó sẽ k mất thời gian load lại nữa nếu đã từng đi qua cái này và load sẵn
-rồi. Ở đây khi file này import bất cứ 1 lúc nào thì model được preload luôn, nếu đến lúc cần dùng mà hàm này chạy
-xong và load xong rồi thì đỡ phải chờ. Tức bắt đầu load async từ lúc import r chứ kp khi dùng mới bắt đầu load
- */
+// Đơn giản ta làm 1 cái hook với current luôn lưu cái action hiện tại
+// Cụ thể khi ấn đổi action, nó chạy vào usePrevious trước, tại đây nó chạy hết và lấy return, sau đó mới chạy
+// useEffect gán ref.current là action mới. Trong Stag2 thì previousAction vẫn lấy ra action cũ thì ta stop nó
+// và chạy action mới thôi
+function usePrevious(value) {
+  console.log("previous");
+  const ref = useRef();
+  useEffect(() => {
+    console.log("Check");
+    ref.current = value;
+  }, [value]);
+  
+  console.log("previous2");
+  return ref.current;
+}

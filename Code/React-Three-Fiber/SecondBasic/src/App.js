@@ -17,6 +17,7 @@ const SpinningBox = (props) => {
 
   const [expand, setExpand] = useState(false);
   
+  // # react-spring
   // Basic animation
   // const animationProps = useSpring({
   //   scale: expand ? [1.4, 1.4, 1.4] : [1, 1, 1],
@@ -75,6 +76,7 @@ const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) *
 function Sphere({ position = [0, 0, 0], ...props }) {
   const ref = useRef();
 
+  // # Basic / Animation
   // Tạo sô random cho từng sphere
   const factor = useMemo(() => 0.5 + Math.random(), [])
 
@@ -121,6 +123,7 @@ function Spheres({ number = 20 }) {
   )
 }
 
+// # Basic
 const App = () => {
   return (
     <>

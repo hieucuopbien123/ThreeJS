@@ -1,5 +1,5 @@
 body{
-    background-color: #000000; /* chỉ dùng # mà k dùng 0x trong css */
+    background-color: white; /* chỉ dùng # mà k dùng 0x trong css */
 }
 
 #three-canvas-container{

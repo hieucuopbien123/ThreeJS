@@ -1,4 +1,4 @@
-import { PerspectiveCamera, OrbitControls, Environment, useTexture, Html, Stars } from "@react-three/drei";
+import { PerspectiveCamera, OrbitControls, Environment, useTexture, Html, Stars, useProgress } from "@react-three/drei";
 import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import * as THREE from "three";
@@ -7,8 +7,10 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import {Model} from "./Scene";
 import {Stag} from "./Stag";
+import {Stag2} from "./Stag2";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 // import DatGui, { DatColor } from 'react-dat-gui';
+import { Suspense } from 'react';
 
 const hdrTextureURL = new URL("./models/MR_INT-006_LoftIndustrialWindow_Griffintown.hdr", import.meta.url);
 
@@ -17,6 +19,7 @@ import metal from "../../assets/ice.jpg";
 function Box(props) {
     const [active, setActive] = useState(false);
     const mesh = useRef();
+    // # Basic / Load texture
     useFrame(() => (
         mesh.current.rotation.x = mesh.current.rotation.y += 0.01
     ));
@@ -43,6 +46,7 @@ function Sphere(props) {
     useFrame(() => (
         mesh.current.rotation.x = mesh.current.rotation.y += 0.01
     ));
+    // # Basic / Load texture
     const base = useMemo(() => new THREE.TextureLoader().load(metal));
 
     return (
@@ -53,10 +57,11 @@ function Sphere(props) {
     );
 }
 
-const Three = () => {
+const Three = (props) => {
     // const [colorMappingTexture, displacementMapTexture] = useTexture(<>); // truyền url vào đây để nó lấy mọi thứ
     // từ cái texture đó xong có thể truyền tiếp các biến số này vào các thuộc tính map của component material
 
+    // # Tải và dùng model
     // Khi load file từ trong thư mục public luôn
     // const gltf = useLoader(GLTFLoader, "/models/car/scene.gltf");
 
@@ -67,7 +72,7 @@ const Three = () => {
     //     loader.setDRACOLoader(dracoLoader);
     // })
 
-    // K nên load bằng useEffect như three nx mà dùng component bth
+    // K nên load bằng useEffect như three nx mà dùng component bth, kiểu dưới là k nên dùng
     // const { scene } = useThree(); // cho dùng scene global nè
     // const loader = new RGBELoader();
     // useEffect(() => {
@@ -85,6 +90,7 @@ const Three = () => {
     const orbitControlsRef = useRef(null);
     const planeRef = useRef(null);
 
+    // # Basic / Dùng cam
     useFrame((state) => {
         if(orbitControlsRef.current){
             const { x, y } = state.mouse; // x, y chạy từ -1 đến 1
@@ -100,6 +106,7 @@ const Three = () => {
         }
     }, [orbitControlsRef.current]);
 
+    // # Basic / Dùng gsap
     useEffect(() => {
         if(ballRef.current){
             console.log(ballRef.current);
@@ -149,7 +156,9 @@ const Three = () => {
             {/* Dùng component jsx của 3d model */}
             {/* <Model scale={0.8} position={[0, 0, -2]} rotation={[0, -Math.PI/4, 0]}/> */}
 
-            <Stag />
+            <Stag position={[10, 10, 10]} />
+            {/* <Stag /> */}
+            <Stag2 action={props.action}/>
 
             <mesh rotation={[-Math.PI*0.5, 0, 0]} receiveShadow ref={planeRef}>
                 <planeGeometry args={[10, 10]}/>
@@ -160,6 +169,7 @@ const Three = () => {
 
             <spotLight args={["#ffffff", 2, 7, Math.PI/4, 0.4]} position={[-3, 1, 0]} castShadow />
 
+            {/* # Phân biệt environment và background trong three và fiber */}
             {/* Set environment */}
             <Environment files={hdrTextureURL.href} />
             

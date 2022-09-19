@@ -1,4 +1,6 @@
 ThreeJS:
+Tương thích react version 18
+
 Three dùng cho mọi dự án. Trong React có thể dùng three thuần or dùng react-three-fiber dùng chuyên cho dự án react, làm sẵn thành từng component
 
 Các cách chạy dự án với three:
@@ -267,6 +269,8 @@ Dùng animation model này cho model khác, chỉ được với các animation 
 
 -> Để có bóng của model tải về(k tự tạo bằng threejs), mọi mesh trong nó phải cho cast shadow, ta phải duyệt
 
+-> Dùng LoadingManager
+
 
 
 # Ngôn ngữ GLSL ES
@@ -368,4 +372,19 @@ Các animation phức tạp như chuyển động cánh tay hay từng ngón tay
 => Quan trọng nhất là delete cả .parcel-cache trong folder r chạy lại
 
 -> Còn rất nhiều phạm trù học như các hiệu ứng lửa khói particle map nhưng ta k đi sâu vì nó k phục vụ web front end bth. Dừng ở mức: tạo và load các model, xử lý vật lý, camera và các hiệu ứng ảnh, animation.
+
+####
+# Basic
+# IMPORTANT(setup dự án)
+# Các loại material và light
+# Điều khiển camera
+# Photography
+# Load assets
+# Ngôn ngữ GLSL ES
+# Dùng cannon.js
+## Bài toán
+# Dùng yuka
+# Dùng react-three-fiber
+# Other
+####
 

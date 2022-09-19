@@ -48,6 +48,7 @@ renderer.toneMappingExposure = 1;
 
 const loadingManager = new THREE.LoadingManager();
 
+// Dùng LoadingManager
 //Bắt đầu load 1 assets băng hàm load. Số lần thực thi =  số lần gọi hàm load
 // loadingManager.onStart = function(url, item, total){
 //     console.log("Start loading url: " + url);

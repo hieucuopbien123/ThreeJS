@@ -8,7 +8,10 @@ title: FREE 1975 Porsche 911 (930) Turbo
 
 import React, { useRef } from 'react'
 import { useGLTF } from '@react-three/drei'
+
+// # Tải và dùng model
 // import model from "./models/scene-transformed.glb";
+// K dùng được kiểu import bth, nếu muốn phải để model vào thư mục public nhưng k nên v
 const model = new URL("./models/scene-transformed.glb", import.meta.url);
 
 export function Model(props) {
