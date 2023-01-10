@@ -145,7 +145,10 @@ const Three = (props) => {
             <PerspectiveCamera makeDefault position={[0, 2, 6]} />
             <OrbitControls ref={orbitControlsRef} minPolarAngle={Math.PI/18} />
 
-            <mesh position={[-2, 2.5, 0]} castShadow ref={ballRef}>
+            <mesh position={[-2, 2.5, 0]} castShadow ref={ballRef} 
+                onPointerOver={(event) => console.log(event)}
+                onPointerOut={(event) => console.log(event)}
+            >
                 <sphereGeometry args={[0.5, 32, 32]}/>
                 <meshStandardMaterial metalness={0.6} roughness={0.2} color={"#ffffff"} envMapIntensity={0.01}/>
             </mesh>

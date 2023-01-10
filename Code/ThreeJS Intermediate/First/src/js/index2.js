@@ -110,6 +110,7 @@ assetLoader.load("./bird/scene.gltf", function(gltf) {
     
     const action = mixer.clipAction(clip);
     const action2 = mixer2.clipAction(clip);
+    console.log(action2);
 
     action.play();
     action.timeScale = 0.5;

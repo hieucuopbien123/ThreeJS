@@ -148,7 +148,7 @@ const clock = new THREE.Clock();
 function animate(time) {
     highlightMesh.material.opacity = 1 + Math.sin(time / 120);
 
-    // ta dùng chung 1 biến delta thay vì ý tưởng khởi tạo 1 mảng clock hay nhiều clock occho
+    // Ta dùng chung 1 biến delta thay vì ý tưởng khởi tạo 1 mảng clock hay nhiều clock occho
     const delta = clock.getDelta();
     mixers.forEach((mixer) => {
         mixer.update(delta);

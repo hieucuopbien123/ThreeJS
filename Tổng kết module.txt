@@ -75,6 +75,8 @@ Mỗi điểm trong hình được lưu trong 1 array [x][y][z][x][y][z][...] v�
 
 -> Fix resize window: Khi resize màn hình lớn ra thì phần thừa sẽ có màu trắng là vì nó k chạy lại file JS để set lại kích thước của rerender theo màn hình mới. Ta bắt sự kiện cho nó setSize lại là xong
 
+Tương tự có thể chơi kiểu scroll xuống thì các element trong canvas di chuyển như nào, làm cho nó giống kiểu parallax được
+
 -> Phân biệt Geometry và BufferGeometry: 
 Phiên bản trước thì Geometry dễ sử dụng nhưng overhead bộ nhớ và performance còn BufferGeometry dùng khó hơn nhưng k lỗi k overhead. Từ phiên bản r125 2021, họ remove hoàn toàn Geometry vào thư mục deprecated, hiện tại chỉ dùng BufferGeometry và Geometry thành alias của class BufferGeometry mà thôi nên dùng cái nào cũng được
 
@@ -86,6 +88,8 @@ Phiên bản trước thì Geometry dễ sử dụng nhưng overhead bộ nhớ 
 
 -> Vc dùng background cho scene giống như ta ghép 6 bức ảnh cho 1 khối cube lớn bao quanh. Vc dùng environment giống như vc dùng 1 khối cầu lớn bao quanh. 2 cách tương tự nhau nhưng environment ra đời sau có cải tiến 1 chút là các material có roughness thấp có thể phản chiếu màu của environment trông thật hơn và enironment thg dùng cho 1 số TH khi mà ảnh texture là chất lượng cao có thể tạo không gian 3d như đang trong 1 căn phòng thực sự như ảnh hdr. Nếu simple thì dùng background thôi
 Cả 2 đều k thể chạm tới trong khi các căn phòng game first person control dùng hẳn 1 model tạo k gian luôn
+
+-> Dùng class JS
 
 
 
@@ -206,6 +210,7 @@ Trong threejs có các class lo vc đó và cũng có rất nhiều hiệu ứng
 # Load assets
 Ta có thể tạo ra các 3D model để thêm vào threeJS tạo ra bằng các tool tạo object 3D như blender or tải trên mạng dưới định dạng fbx, obj, gltf(.glb) mà kp thiết kế lại. 
 Mỗi loại file assets khi dùng trong Threejs đều có file loader của riêng nó như RGBELoader, GLTFLoader, TextureLoader,.. thậm chí là font chữ hay audio, video
+Có cả FBXLoader
 
 Các vật thể realistics muốn hiển thị phải cung cho nó 1 env map chứ đừng cung cái directional light nhìn xấu
 
@@ -225,7 +230,8 @@ gltfLoader.load(model.href, <>);
 --> Tương tự với load ảnh vào khối sphere
 
 --> Load ảnh vào full background 6 mặt: dùng CubeTextureLoader và làm tương tự vì thực tế trong không gian ta nhìn thấy gói gọn trong 1 cube 6 mặt mà thôi nên có thể dùng 1 bức ảnh 2D để làm nó hiện như 3D.
---> Load ảnh vào 6 mặt vào 1 cube box: dùng TextureLoader bình thường nhưng gán 6 lần vào 1 mảng của material
+--> Load ảnh vào 6 mặt vào 1 cube box: dùng TextureLoader bình thường nhưng gán 6 lần vào 1 mảng của material. 
+Skybox là từ trong video game chỉ phong cảnh được tạo nên từ 6 bức ảnh
 
 -> Set up để load model lớn:
 --> Nếu dùng cdn thì ok
@@ -257,7 +263,10 @@ Khi import các model từ nguồn khác phải có light cho nó thì mới hi�
 
 -> Clone và animate loaded assets cx k thể làm như mesh bth
 
--> Load multi animation:
+-> Các bước load 1 animation cơ bản:
+Lấy mixer, lấy animation action, cho animation action chạy play(), mixer gọi update ở trong requestAnimationFrame truyền vào tg cách bao lâu kể từ lần gọi trước
+
+-> Load multi animation
 Biến AnimationMixer như 1 animation player, như cục timeline trong blender
 Có thể dùng animation của model này cho model khác
 
@@ -362,7 +371,9 @@ Các animation phức tạp như chuyển động cánh tay hay từng ngón tay
 
 -> sketchfab là 1 trong những assets store lớn nhất cung 3d model để dùng trong các dự án, tải về dạng GLTF
 
--> quaternius là nơi ta có thể tìm nhiều model assets game 3d free. Các hình con vật hay gì có chuyển động ok luôn nhưng khá low poly
+quaternius là nơi ta có thể tìm nhiều model assets game 3d free. Các hình con vật hay gì có chuyển động ok luôn nhưng khá low poly
+
+mixamo chứa 3d model của adobe, mỗi 1 animation của 1 nhân vật được tải riêng thành 1 filel fbx và phải load từng file animation
 
 -> https://3dtextures.me/ là trang chuyên cung các ảnh vật liệu material để làm bề mặt texture cho đồ vật như vải, gỗ,...
 
